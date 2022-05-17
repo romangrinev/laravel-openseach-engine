@@ -11,7 +11,7 @@
     "require": {},
     "autoload": {
         "psr-4": {
-            "Grinev\\OpenSearchEngine\\" : "src/"
+            "Grinev\\LaravelOpenSearchEngine\\" : "src/"
         }
     },
     "minimum-stability": "dev"
