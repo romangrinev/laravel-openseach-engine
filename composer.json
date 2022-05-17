@@ -12,6 +12,11 @@
         "php": ">=8.0",
         "laravel/framework": "^9.0.0"
     },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.x-dev"
+        }
+    },
     "autoload": {
         "psr-4": {
             "Grinev\\LaravelOpenSearchEngine\\" : "src/"
