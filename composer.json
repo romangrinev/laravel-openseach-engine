@@ -8,7 +8,11 @@
             "email": "rigrinev@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": ">=8.0",
+        "laravel/framework": "^9.0.0",
+        "romangrinev/laravel-opensearch-engine": "^0.0.1"
+    },
     "autoload": {
         "psr-4": {
             "Grinev\\LaravelOpenSearchEngine\\" : "src/"
