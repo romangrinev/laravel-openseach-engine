@@ -1,4 +1,4 @@
 # Laravel OpenSearch Engine
 ## Installation
 
-`composer install romangrinev/laravel-opensearch-engine`
+`composer require romangrinev/laravel-opensearch-engine`
