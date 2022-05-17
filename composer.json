@@ -1,0 +1,18 @@
+{
+    "name": "romangrinev/laravel-opensearch-engine",
+    "description": "Custom Laravel Scout OpenSearch Engine",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Roman Grinev",
+            "email": "rigrinev@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Grinev\\OpenSearchEngine\\" : "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
