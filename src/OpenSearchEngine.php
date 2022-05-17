@@ -1,6 +1,6 @@
 <?php
 
-namespace Grinev/OpenSearchEngine;
+namespace Grinev\LaravelOpenSearchEngine;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\LazyCollection;
