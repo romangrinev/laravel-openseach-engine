@@ -138,9 +138,9 @@ class OpenSearchEngine extends Engine
         }
 
         $ids = $this->mapIds($results);
-        $positions = array_flip($ids);
+        $positions = array_flip($ids->toArray());
 
-        return $model->getScoutModelsByIds($builder, $ids)->sortBy(function ($model) use ($positions) {
+        return $model->getScoutModelsByIds($builder, $ids->toArray())->sortBy(function ($model) use ($positions) {
             return $positions[$model->getScoutKey()];
         })->values();
     }
@@ -152,7 +152,7 @@ class OpenSearchEngine extends Engine
         }
 
         $ids = $this->mapIds($results);
-        $positions = array_flip($ids);
+        $positions = array_flip($ids->toArray());
 
         return $model->queryScoutModelsByIds(
                 $builder, $ids
@@ -162,7 +162,7 @@ class OpenSearchEngine extends Engine
     }
 
     public function mapIds($results){
-        return collect($results['hits'])->pluck('_id')->toArray();
+        return collect($results['hits'])->pluck('_id')->values();
     }
 
     public function getTotalCount($results)
