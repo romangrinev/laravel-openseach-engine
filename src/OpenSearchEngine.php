@@ -67,7 +67,9 @@ class OpenSearchEngine extends Engine
         foreach($ids as $id){
             $response = Http::withBasicAuth(config('scout.opensearch.user'), config('scout.opensearch.pass'))
             	->delete($this->url . '/' . $index . '/_doc/' . $id);
-            self::errors($response);
+            if(!in_array($response->status(), [404, 200])){
+                self::errors($response);
+            }
         }
     }
 
