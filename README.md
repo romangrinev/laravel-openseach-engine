@@ -52,6 +52,6 @@ return [
 
 ## Usage
 ```
-    $posts = Post::search('Key phrase')->get();
+$posts = Post::search('Key phrase')->get();
 ```
 Learn more about [Laravel Scout](https://laravel.com/docs/9.x/scout)
