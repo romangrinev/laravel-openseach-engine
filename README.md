@@ -5,7 +5,7 @@
 
 Update your `App\Providers\AppServiceProvider`
 
-```
+```php
 <?php
 
 namespace App\Providers;
@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
 Update `config\scout.php`
 
-```
+```php
 <?php
 
 return [
@@ -51,7 +51,7 @@ return [
 ```
 
 ## Usage
-```
+```php
 $posts = Post::search('Key phrase')->get();
 ```
 Learn more about [Laravel Scout](https://laravel.com/docs/9.x/scout)
