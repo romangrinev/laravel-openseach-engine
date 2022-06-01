@@ -127,7 +127,7 @@ class OpenSearchEngine extends Engine
                             'simple_query_string' => [
                                 'query' => $builder->query,
                                 'fields' => $fields,
-                                'default_operator' => 'and',
+                                'default_operator' => 'or',
                             ]
                         ]
                     ]
