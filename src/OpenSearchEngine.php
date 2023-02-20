@@ -21,6 +21,29 @@ class OpenSearchEngine extends Engine
     {
         $this->softDelete = $softDelete;
         $this->url = config('scout.opensearch.host');
+        $this->options = config('scout.opensearch.options');
+    }
+
+    public function putRequest($uri, $data){
+        $url = $this->url . $uri;
+        $response = Http::withBasicAuth(
+            config('scout.opensearch.user'),
+            config('scout.opensearch.pass')
+        )->put($url, $data);
+        self::errors($response);
+
+        return $response->json();
+    }
+
+    public function getRequest($uri){
+        $url = $this->url . $uri;
+        $response = Http::withBasicAuth(
+            config('scout.opensearch.user'),
+            config('scout.opensearch.pass')
+        )->get($url);
+        self::errors($response);
+
+        return $response->json();
     }
 
     public function update($models)
@@ -98,8 +121,25 @@ class OpenSearchEngine extends Engine
             'size' => $builder->limit ? $builder->limit : 10,
             'from' => 0,
         ];
-        $options['query'] = $this->filters($builder);
+        if($builder->orders && is_array($builder->orders)){
+            $sort = [];
+            foreach($builder->orders as $item){
+                $sort[] = [
+                    data_get($item, 'column') => [
+                        'order' => data_get($item, 'direction')
+                    ]
+                ];
+            }
+            $sort = array_filter($sort);
+            if(count($sort) > 0){
+                $options['sort'] = $sort;
+            }
+        }
 
+        $query = $this->filters($builder);
+        if($query){
+            $options['query'] = $query;
+        }
         return $this->performSearch($builder, $options);
     }
 
@@ -118,6 +158,7 @@ class OpenSearchEngine extends Engine
 
     protected function filters(Builder $builder){
         $query = null;
+
         if($builder->query){
             $fields = $builder->model->searchableFields();
             $query = [
@@ -134,24 +175,27 @@ class OpenSearchEngine extends Engine
                 ]
             ];
         }
-
         if(count($builder->wheres) > 0){
             if(!isset($query)) $query = [];
             if(!isset($query['bool'])) $query['bool'] = [];
             foreach($builder->wheres as $key => $value){
                 if($key && $value){
-                    $query['bool']['filter'][] = [
-                        'match' => [
-                            $key => [
-                                'query' => $value,
-                                'operator' => 'and'
+                    if(is_array($value)){
+                        $query['bool']['must'][] = [
+                            $key => $value
+                        ];
+                    }else{
+                        $query['bool']['must'][] = [
+                            'term' => [
+                                $key => [
+                                    'value' => $value
+                                ]
                             ]
-                        ]
-                    ];
+                        ];
+                    }
                 }
             }
         }
-
         return $query;
     }
 
@@ -202,16 +246,18 @@ class OpenSearchEngine extends Engine
 
     public function createIndex($name, array $options = [])
     {
-        throw new Exception('OpenSearch indexes are created automatically upon adding objects.');
+        if(config("scout.opensearch.mappings.$name")){
+            $this->putRequest('/' . $name, config("scout.opensearch.mappings.$name"));
+        }else{
+            throw new Exception('OpenSearch indexes are created automatically upon adding objects.');
+        }
     }
 
     public function deleteIndex($name)
     {
         $response = Http::withBasicAuth(config('scout.opensearch.user'), config('scout.opensearch.pass'))
         	->delete($this->url . '/' . $name);
-        if($response->status() != 200){
-        	return throw new Exception($response->reason());
-        }
+        self::errors($response);
     }
 
     public static function errors(Response $response){
