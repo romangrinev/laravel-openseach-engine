@@ -51,7 +51,47 @@ return [
 ```
 
 ## Usage
+### Search by keyphrase
 ```php
 $posts = Post::search('Key phrase')->get();
 ```
-Learn more about [Laravel Scout](https://laravel.com/docs/9.x/scout)
+
+### Order search results
+```php
+$posts = Post::search()->orderBy('posted_at', 'desc')->get();
+```
+
+### Search by term
+```php
+$posts = Post::search()->where('category_id', '48')->get();
+```
+
+### Search by range
+```php
+$posts = Post::search()->where('range', [
+    'price' => [
+        'gte' => 100,
+        'lte' => 200
+    ]
+])->get();
+```
+Learn more about [OpenSearch Range Queries](https://opensearch.org/docs/2.0/opensearch/supported-field-types/range/#range-query)
+
+### Seach by geo location
+```php
+$posts = Post::search()->->where('geo_bounding_box', [
+    "location" => [
+        "top_left" => [
+            "lat" => 48.0,
+            "lon" => -123.0
+        ],
+        "bottom_right" => [
+            "lat" => 46.0,
+            "lon" => -121.0
+        ]
+    ]
+])->get();
+```
+Learn more about [OpenSearch Geo-bounding box queries](https://opensearch.org/docs/2.5/opensearch/query-dsl/geo-and-xy/geo-bounding-box/)
+
+Learn more about [Laravel Scout](https://laravel.com/docs/10.x/scout)
