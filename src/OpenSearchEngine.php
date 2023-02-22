@@ -93,53 +93,35 @@ class OpenSearchEngine extends Engine
         }
     }
 
-    protected function performSearch(Builder $builder, array $options = [], bool $skipCallback = false)
-    {
-        if ($builder->callback && !$skipCallback) {
-            return call_user_func(
-                $builder->callback,
-                $this,
-                $builder,
-                $options
-            );
-        }
+    public static function optionsBy(Builder $builder, $limit = null, $page = null){
+        $size = $limit ? $limit : ($builder->limit ? $builder->limit : 10);
+        $from = ($page && $size) ? (($page - 1) * $size) : 0;
+        $query = self::filters($builder);
 
-        $url = $this->url . '/' . $builder->model->searchableAs() . '/_search';
-
-        $response = Http::withBasicAuth(
-            config('scout.opensearch.user'),
-            config('scout.opensearch.pass')
-        )->post($url, $options);
-        self::errors($response);
-
-        return $response->json('hits');
-    }
-
-    public function search(Builder $builder) {
-        $options = [
+        $options = array_filter([
             '_source' => true,
-            'size' => $builder->limit ? $builder->limit : 10,
-            'from' => 0,
-        ];
-        if($builder->orders && is_array($builder->orders)){
-            $sort = [];
-            foreach($builder->orders as $item){
-                $sort[] = [
-                    data_get($item, 'column') => [
-                        'order' => data_get($item, 'direction')
-                    ]
-                ];
-            }
-            $sort = array_filter($sort);
-            if(count($sort) > 0){
-                $options['sort'] = $sort;
-            }
-        }
+            'size' => $size,
+            'from' => $from
+        ]);
 
-        $query = $this->filters($builder);
         if($query){
             $options['query'] = $query;
         }
+
+        if($builder->orders && is_array($builder->orders)){
+            $sort = [];
+            foreach($builder->orders as $item){
+                $sort[] = [ data_get($item, 'column') => [ 'order' => data_get($item, 'direction') ] ];
+            }
+            $sort = array_filter($sort);
+            if(count($sort) > 0) $options['sort'] = $sort;
+        }
+
+        return $options;
+    }
+
+    public function search(Builder $builder) {
+        $options = self::optionsBy($builder);
         return $this->performSearch($builder, $options);
     }
 
@@ -148,6 +130,11 @@ class OpenSearchEngine extends Engine
     }
 
     public function paginate(Builder $builder, $limit, $page){
+        $options = self::optionsBy($builder, $limit, $page);
+        return $this->performSearch($builder, $options);
+    }
+
+    protected static function filters(Builder $builder){
         return $this->performSearch($builder, array_filter([
             '_source' => true,
             'query' => $this->filters($builder),
