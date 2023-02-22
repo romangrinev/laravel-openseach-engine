@@ -1,6 +1,6 @@
 {
     "name": "romangrinev/laravel-opensearch-engine",
-    "version": "v0.0.11",
+    "version": "v0.0.12",
     "description": "Custom Laravel Scout OpenSearch Engine",
     "keywords": ["opensearch", "laravel", "search", "scout"],
     "license": "MIT",
