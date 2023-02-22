@@ -93,7 +93,7 @@ class OpenSearchEngine extends Engine
         }
     }
 
-        public static function optionsBy(Builder $builder, $limit = null, $page = null){
+    public static function optionsBy(Builder $builder, $limit = null, $page = null){
         $size = $limit ? $limit : ($builder->limit ? $builder->limit : 10);
         $from = ($page && $size) ? (($page - 1) * $size) : 0;
         $query = self::filters($builder);
