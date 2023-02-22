@@ -93,6 +93,28 @@ class OpenSearchEngine extends Engine
         }
     }
 
+    protected function performSearch(Builder $builder, array $options = [], bool $skipCallback = false)
+    {
+        if ($builder->callback && !$skipCallback) {
+            return call_user_func(
+                $builder->callback,
+                $this,
+                $builder,
+                $options
+            );
+        }
+
+        $url = $this->url . '/' . $builder->model->searchableAs() . '/_search';
+
+        $response = Http::withBasicAuth(
+            config('scout.opensearch.user'),
+            config('scout.opensearch.pass')
+        )->post($url, $options);
+        self::errors($response);
+
+        return $response->json('hits');
+    }
+
     public static function optionsBy(Builder $builder, $limit = null, $page = null){
         $size = $limit ? $limit : ($builder->limit ? $builder->limit : 10);
         $from = ($page && $size) ? (($page - 1) * $size) : 0;
@@ -135,15 +157,6 @@ class OpenSearchEngine extends Engine
     }
 
     protected static function filters(Builder $builder){
-        return $this->performSearch($builder, array_filter([
-            '_source' => true,
-            'query' => $this->filters($builder),
-            'size' =>  $limit ? $limit : 10,
-            'from' => ($page - 1) * $limit
-        ]));
-    }
-
-    protected function filters(Builder $builder){
         $query = null;
 
         if($builder->query){
