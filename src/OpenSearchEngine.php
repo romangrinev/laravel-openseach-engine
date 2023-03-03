@@ -179,7 +179,7 @@ class OpenSearchEngine extends Engine
             if(!isset($query)) $query = [];
             if(!isset($query['bool'])) $query['bool'] = [];
             foreach($builder->wheres as $key => $value){
-                if($key && $value){
+                if($key && $value !== null){
                     if(is_array($value)){
                         $query['bool']['must'][] = [
                             $key => $value
