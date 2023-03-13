@@ -35,12 +35,23 @@ class OpenSearchEngine extends Engine
         return $response->json();
     }
 
-    public function getRequest($uri){
+    public function postRequest($uri, $data){
         $url = $this->url . $uri;
         $response = Http::withBasicAuth(
             config('scout.opensearch.user'),
             config('scout.opensearch.pass')
-        )->get($url);
+        )->post($url, $data);
+        self::errors($response);
+
+        return $response->json();
+    }
+
+    public function getRequest($uri, $data = []){
+        $url = $this->url . $uri;
+        $response = Http::withBasicAuth(
+            config('scout.opensearch.user'),
+            config('scout.opensearch.pass')
+        )->get($url, $data);
         self::errors($response);
 
         return $response->json();
@@ -93,6 +104,28 @@ class OpenSearchEngine extends Engine
         }
     }
 
+    protected function performSearch(Builder $builder, array $options = [], bool $skipCallback = false)
+    {
+        if ($builder->callback && !$skipCallback) {
+            return call_user_func(
+                $builder->callback,
+                $this,
+                $builder,
+                $options
+            );
+        }
+
+        $url = $this->url . '/' . $builder->model->searchableAs() . '/_search';
+        $response = Http::withBasicAuth(
+            config('scout.opensearch.user'),
+            config('scout.opensearch.pass')
+        )->post($url, $options);
+
+        self::errors($response);
+
+        return $response->json();
+    }
+
     public static function optionsBy(Builder $builder, $limit = null, $page = null){
         $size = $limit ? $limit : ($builder->limit ? $builder->limit : 10);
         $from = ($page && $size) ? (($page - 1) * $size) : 0;
@@ -117,6 +150,10 @@ class OpenSearchEngine extends Engine
             if(count($sort) > 0) $options['sort'] = $sort;
         }
 
+        if($builder->rawOptions){
+            $options = array_merge($builder->rawOptions, $options);
+        }
+
         return $options;
     }
 
@@ -126,7 +163,12 @@ class OpenSearchEngine extends Engine
     }
 
     public function searchRaw(Builder $builder, array $options) {
-        return $this->performSearch($builder, $options, true);
+        return $this->performSearch($builder, $options);
+    }
+
+    public function whereRaw(Builder $builder, array $options) {
+        $builder->rawOptions = $options;
+        return $builder;
     }
 
     public function paginate(Builder $builder, $limit, $page){
@@ -135,15 +177,6 @@ class OpenSearchEngine extends Engine
     }
 
     protected static function filters(Builder $builder){
-        return $this->performSearch($builder, array_filter([
-            '_source' => true,
-            'query' => $this->filters($builder),
-            'size' =>  $limit ? $limit : 10,
-            'from' => ($page - 1) * $limit
-        ]));
-    }
-
-    protected function filters(Builder $builder){
         $query = null;
 
         if($builder->query){
@@ -166,7 +199,7 @@ class OpenSearchEngine extends Engine
             if(!isset($query)) $query = [];
             if(!isset($query['bool'])) $query['bool'] = [];
             foreach($builder->wheres as $key => $value){
-                if($key && $value){
+                if($key && $value !== null){
                     if(is_array($value)){
                         $query['bool']['must'][] = [
                             $key => $value
@@ -188,7 +221,9 @@ class OpenSearchEngine extends Engine
 
     public function map(Builder $builder, $results, $model)
     {
-        if (!is_array($results) || count($results['hits']) === 0) {
+        $results = data_get($results, 'hits.hits', []);
+
+        if(count($results) === 0){
             return $model->newCollection();
         }
 
@@ -202,7 +237,9 @@ class OpenSearchEngine extends Engine
 
     public function lazyMap(Builder $builder, $results, $model)
     {
-        if (count($results['hits']) === 0) {
+        $results = data_get($results, 'hits.hits', []);
+
+        if (count($results) === 0) {
             return LazyCollection::make($model->newCollection());
         }
 
@@ -217,7 +254,7 @@ class OpenSearchEngine extends Engine
     }
 
     public function mapIds($results){
-        return collect($results['hits'])->pluck('_id')->values();
+        return collect($results)->pluck('_id')->values();
     }
 
     public function getTotalCount($results)
