@@ -155,5 +155,6 @@ $raw = Post::search('Key phrase')
 $categories = collect(data_get($raw, 'aggregations.categories.buckets', []))->pluck('key')->map(fn($id) => Category::find($id));
 ```
 Learn more about [OpenSearch Aggregations](https://opensearch.org/docs/latest/aggregations/)
+
 ---
 Learn more about [Laravel Scout](https://laravel.com/docs/10.x/scout)
