@@ -116,6 +116,7 @@ class OpenSearchEngine extends Engine
         }
 
         $url = $this->url . '/' . $builder->model->searchableAs() . '/_search';
+
         $response = Http::withBasicAuth(
             config('scout.opensearch.user'),
             config('scout.opensearch.pass')
@@ -123,7 +124,7 @@ class OpenSearchEngine extends Engine
 
         self::errors($response);
 
-        return $response->json();
+        return $response->json('hits');
     }
 
     public static function optionsBy(Builder $builder, $limit = null, $page = null){
