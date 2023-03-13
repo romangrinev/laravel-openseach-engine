@@ -139,5 +139,20 @@ php artisan scout:flush App\\Models\\Post
 php artisan scout:index App\\Models\\Post
 php artisan scout:import App\\Models\\Post
 ```
-
+### Group By / Aggregate results
+[OpenSearch Aggregations](https://opensearch.org/docs/latest/aggregations/)
+```
+$raw = Post::search('Key phrase')
+    ->whereRaw([
+        'aggs' => [
+            'categories' => [
+                'terms' => [
+                    'field' => 'category_id'
+                ]
+            ]
+        ]
+    ])->raw();
+$categories = collect(data_get($raw, 'aggregations.categories.buckets', []))->pluck('key')->map(fn($id) => Category::find($id));
+```
+---
 Learn more about [Laravel Scout](https://laravel.com/docs/10.x/scout)
