@@ -116,7 +116,6 @@ class OpenSearchEngine extends Engine
         }
 
         $url = $this->url . '/' . $builder->model->searchableAs() . '/_search';
-
         $response = Http::withBasicAuth(
             config('scout.opensearch.user'),
             config('scout.opensearch.pass')
@@ -124,7 +123,7 @@ class OpenSearchEngine extends Engine
 
         self::errors($response);
 
-        return $response->json('hits');
+        return $response->json();
     }
 
     public static function optionsBy(Builder $builder, $limit = null, $page = null){
@@ -151,7 +150,7 @@ class OpenSearchEngine extends Engine
             if(count($sort) > 0) $options['sort'] = $sort;
         }
 
-        if($builder->rawOptions){
+        if(isset($builder->rawOptions) && is_array($builder->rawOptions)){
             $options = array_merge($builder->rawOptions, $options);
         }
 
@@ -260,7 +259,8 @@ class OpenSearchEngine extends Engine
 
     public function getTotalCount($results)
     {
-        return (int) Arr::get($results, 'total.value', count($results['hits']));
+        dd($results);
+        return (int) Arr::get($results, 'hits.total.value', count(data_get($results, 'hits.hits')));
     }
 
     public function flush($model)
