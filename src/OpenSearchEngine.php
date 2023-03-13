@@ -259,7 +259,6 @@ class OpenSearchEngine extends Engine
 
     public function getTotalCount($results)
     {
-        dd($results);
         return (int) Arr::get($results, 'hits.total.value', count(data_get($results, 'hits.hits')));
     }
 
