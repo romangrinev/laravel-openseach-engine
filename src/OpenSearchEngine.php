@@ -121,7 +121,7 @@ class OpenSearchEngine extends Engine
             config('scout.opensearch.pass')
         )->post($url, $options);
 
-        self::errors($response);
+        self::errors($response, $options);
 
         return $response->json();
     }
@@ -284,10 +284,11 @@ class OpenSearchEngine extends Engine
         self::errors($response);
     }
 
-    public static function errors(Response $response){
+    public static function errors(Response $response, $options = []){
         if($response->status() != 200){
             $data = $response->json();
             $reason = Arr::has($data, 'error.reason') ? Arr::get($data, 'error.reason') : $response->getReasonPhrase();
+            $reason = $reason . print_r($data, true) . print_r($options, true);
             return throw new Exception($reason);
         }
     }
